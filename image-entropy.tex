@@ -1,0 +1,162 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This is a simple template for a LaTeX document using the "article" class.
+% See "book", "report", "letter" for other types of document.
+
+\documentclass[11pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+
+%%% Examples of Article customizations
+% These packages are optional, depending whether you want the features they provide.
+% See the LaTeX Companion or other references for full information.
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{a4paper} % or letterpaper (US) or a5paper or....
+% \geometry{margin=2in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+%%% END Article customizations
+
+%%% The "real" document content comes below...
+
+\title{Entropy-Based Image Descriminator}
+\author{J.S. Virzi}
+%\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\begin{document}
+\maketitle
+
+\section{Abstract}
+
+We present a computationally efficient descriminator helpful for finding areas of localized brightness inside a larger image.
+Images with clumps of bright pixels on a dim background generally have lower entropy,
+as compared to a homogenous image with the same overall brightness.
+The lower entropy relates to the higher amount of structure when few pixels contain a disproportionate amount of brightness.
+An algorithm of $O \left( N \right)$ is presented where the complexity of intermediate quantities are abstracted away using lookup tables.
+Arithmetic complexity is reduced to sums and multiplications.
+Iteration of the algorithm at different scales can be employed to find localized structure within a system.
+The algorithm is generalized to any system with countable states.
+
+\subsection{Background}
+
+Entropy measures the number of states available to a system. 
+
+For example, consider a gray scale image consisting of ${N = W \times H}$ pixels, where $W$ is the width of the image and $H$ denotes its height. For convenience, assume each pixel is represented by 8 bit integer, encoding 256 different values. 
+A completely dark pixel is represented by 0; the brightest value of a pixel is 255.
+Let $n_{k}$ represent the brightness of the $k^{th}$ pixel.
+The maximum entropy of this image is defined as the logarithm of the number of available states,
+assuming each pixel can assume any of 256 values ($0 \le n_{k} \le 255$).
+
+\begin{equation}
+S_{max} = \log \left( 256 \right)^{W \times H} = N \times \log \left( 256 \right)
+\end{equation}
+
+The total brightness of the image can be considered as the total energy $n \equiv E_{TOT}$ defined as
+
+\begin{equation}
+n \equiv \sum_{k=1}^{k=N} n_{k}
+\end{equation}
+
+The total number of states available to this image is
+
+\begin{equation}
+\sigma = \frac{\left( n_{1} + n_{2} + n_{3} + \ldots + n_{N} \right)!}{n_{1}!n_{2}!n_{3}! \ldots n_{N}!} = \frac{n!}{n_{1}!n_{2}!n_{3}! \ldots n_{N}!}
+\end{equation}
+
+The entropy of this image is
+
+\begin{equation}\label{eqn:snom}
+% S \equiv \log \left( \sigma \right) = \log \left( \frac{n!}{\Pi_{k=1}^{k=N} \left( n_{k}! \right)} \right)
+S \equiv \log \left( \sigma \right) = \log \left( \frac{n!}{n_{1}!n_{2}!n_{3}! \ldots n_{N}!}\right)
+\end{equation}
+
+Whereas Eqn.(\ref{eqn1}) assumes the form of the multinomial distribution, the maximum value is assumed when all factors are equal.
+From this, we know the maximum entropy of this image is assumed when all pixels have the same value, namely the average energy $\bar{n} \equiv \frac{n}{N}$.
+Under these conditions, the entropy is
+
+\begin{equation}\label{eqn:smax}
+S_{0} \equiv \log \left( \sigma_{0} \right) = \log \left( \frac{n!}{\left( \bar{n}! \right)^{N}} \right)
+\end{equation}
+
+We use Eqn.(\ref{eqn:smax}) to give a reference scale to Eqn.(\ref{eqn:snom})
+
+\begin{equation}
+\delta \equiv \frac{\sigma}{\sigma_{0}} =  \frac{\left( \bar{n}! \right)^{N}}{n_{1}!n_{2}!n_{3}! \ldots n_{N}!}
+\end{equation}
+
+$\delta$ is a ratio between 0 and 1, comparing the number of available states of the image with energy $n$ to the maximum number of states.
+An image with random values of energy (uniform brightness) will have a large entropy, because there are many, many ways to create such an image.
+An image with swaths of brightness will have a low entropy, reflecting the much fewer ways to construct such an image.
+We investigate the power of this entropy measure to discern if an image might contain otherwise unnaturally clumped swaths of brightness.
+It proves convenient to work with the logarithms of these large numbers
+
+\begin{equation}\label{eqn:delta}
+\Delta \equiv \log \left( \frac{\sigma}{\sigma_{0}} \right) =  {N * \log \bar{n}!} - {\log n_{1}! - \log n_{2}! - \log n_{3}! - \ldots - \log n_{N}!}
+\end{equation}
+
+\section{$\Delta$ as Descriminator}
+
+$\Delta$
+
+\section{Further Development - Clump Detection}
+
+$\Delta$ gives the same value regardless of the distribution of bright pixels.
+The pixels could be clumped together, or distributed in any manner across the image, and still give the same value of $\Delta$.
+By iterating the algorithm on different scales, effectively grouping pixels together, any clumped structure begins to emerge.
+For example, suppose an $100 \times 100$ image contains a $10 \times 10$ clump of brightness in the upper left-hand quadrant.
+The upper right-hand quadrant, and both lower quadrants will contain virtually no structure and high entropy.
+Only the upper left-hand quadrant will contain structure, and thus low entropy.
+
+\section{Computational Efficiency}
+
+For this example, we have 256 different energies for each pixel.
+Computation of $\Delta$ in Eqn. (\ref{eqn:delta}) can be efficiently calculated using a lookup table, containing 256 entries.
+The $k^{th}$ entry of the lookup table contains the value $ \lambda_{k} \equiv \log k!$.
+Calculation of $\Delta$ involves a sum over pixels.
+
+\section{Generalization of Algorithm}
+
+For the sake of readability, we focused on a particular example.
+The methods developed herein are extended, in a straight-forward and self-explanatory manner, to any system with countable states.
+
+\section{Conclusions}
+
+We have developed a descriminator $\Delta$ which can be used as a tool to find localized clumps of structure within a larger system.
+Conversely, $\Delta$ can be used to rule out localized structure in an image, or subimage.
+
+\end{document}

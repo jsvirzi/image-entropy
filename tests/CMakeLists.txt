@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 3.24)
+project(tests)
+
+set(CMAKE_CXX_STANDARD 17)
+
+set(OpenCV_DIR /usr/local/lib)
+find_package( OpenCV REQUIRED )
+
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+# include_directories(/usr/local/include/opencv4)
+
+add_executable(tests main.cpp)
+# add_link_options(-L/usr/local/lib -lopencv_core)
+add_link_options(-L/usr/local/lib -lopencv_calib3d)
+add_link_options(-L/usr/local/lib -lopencv_core)
+add_link_options(-L/usr/local/lib -lopencv_dnn)
+add_link_options(-L/usr/local/lib -lopencv_features2d)
+add_link_options(-L/usr/local/lib -lopencv_flann)
+add_link_options(-L/usr/local/lib -lopencv_gapi)
+add_link_options(-L/usr/local/lib -lopencv_highgui)
+add_link_options(-L/usr/local/lib -lopencv_imgcodecs)
+add_link_options(-L/usr/local/lib -lopencv_imgproc)
+add_link_options(-L/usr/local/lib -lopencv_ml)
+add_link_options(-L/usr/local/lib -lopencv_objdetect)
+add_link_options(-L/usr/local/lib -lopencv_photo)
+add_link_options(-L/usr/local/lib -lopencv_stitching)
+add_link_options(-L/usr/local/lib -lopencv_video)
+add_link_options(-L/usr/local/lib -lopencv_videoio)
+
+target_link_libraries(tests ${OpenCV_LIBS} )
+# target_link_directories(tests /usr/local/lib)
+# link_directories(/usr/local/lib)
+# link_libraries(opencv_core)
